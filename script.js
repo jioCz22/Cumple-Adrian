@@ -643,12 +643,12 @@
       if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} } // se crea dentro del toque (iOS lo exige)
       if (bgm.error || bgm.networkState === 3) { trySynth(); return; }
       bgm.volume = 0;
-      // CAMBIO: iniciar la canción en el segundo 25.
+      // CAMBIO: iniciar la canción en el segundo 12.
       // Si los metadatos aún no están cargados, buscar el segundo 25
       // en cuanto el navegador conozca la duración del audio.
       const iniciarEn25 = () => {
-        if (Number.isFinite(bgm.duration) && bgm.duration > 25 && bgm.currentTime < 25) {
-          try { bgm.currentTime = 25; } catch (_) {}
+        if (Number.isFinite(bgm.duration) && bgm.duration > 12 && bgm.currentTime < 12) {
+          try { bgm.currentTime = 12; } catch (_) {}
         }
       };
       if (bgm.readyState >= 1) {
