@@ -579,5 +579,99 @@
 
   } // fin mountSurprise
 
+  /* ---------------------------------------------------------
+     13. MÚSICA — empieza con el primer toque (los navegadores no permiten
+         sonido sin que la persona toque la pantalla antes)
+     --------------------------------------------------------- */
+  (function music() {
+    const bgm = $('#bgm'), btn = $('#musicBtn'), hintEl = $('#musicHint');
+    const VOL = .55;
+    let started = false, wanted = false, mode = '', ctx = null, master = null, pumpTimer = 0;
+
+    const setUI = on => {
+      btn.classList.toggle('on', on); btn.classList.toggle('off', !on && started);
+      btn.setAttribute('aria-pressed', String(on));
+      btn.setAttribute('aria-label', on ? 'Silenciar la música' : 'Activar la música');
+    };
+    const fadeFile = (to, ms, end) => {
+      const from = bgm.volume, t0 = performance.now();
+      (function step(t) {
+        const k = Math.min(1, (t - t0) / ms); bgm.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+        if (k < 1) requestAnimationFrame(step); else if (end) end();
+      })(t0);
+    };
+
+    // ---- Plan B: si no hay cancion.mp3, suena una cajita de música con "Feliz cumpleaños" (melodía de dominio público) ----
+    const SONG = [[392,.75],[392,.25],[440,1],[392,1],[523.25,1],[493.88,2],[392,.75],[392,.25],[440,1],[392,1],[587.33,1],[523.25,2],
+                  [392,.75],[392,.25],[783.99,1],[659.25,1],[523.25,1],[493.88,1],[440,1],[698.46,.75],[698.46,.25],[659.25,1],[523.25,1],[587.33,1],[523.25,2]];
+    const BEAT = .6; let idx = 0, nextT = 0;
+    function note(f, t, len) {
+      const g = ctx.createGain(), end = t + Math.max(len * 1.9, 1);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .012); g.gain.exponentialRampToValueAtTime(.001, end);
+      g.connect(master);
+      [[f, 'sine', 1], [f * 2, 'triangle', .22], [f * 3, 'sine', .08]].forEach(([fr, type, amp]) => {
+        const o = ctx.createOscillator(), a = ctx.createGain(); o.type = type; o.frequency.value = fr; a.gain.value = amp;
+        o.connect(a); a.connect(g); o.start(t); o.stop(end + .05);
+      });
+    }
+    function pump() {
+      while (nextT < ctx.currentTime + 1.5) {
+        const [f, d] = SONG[idx]; note(f, nextT, d * BEAT); nextT += d * BEAT;
+        if (++idx === SONG.length) { idx = 0; nextT += 1.8; }
+      }
+    }
+    function startSynth() {
+      try {
+        mode = 'synth';
+        master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+        ctx.resume(); nextT = ctx.currentTime + .15; pump(); pumpTimer = setInterval(pump, 400);
+        master.gain.linearRampToValueAtTime(VOL * .8, ctx.currentTime + 2.5);
+        started = true; wanted = true; setUI(true); detach();
+      } catch (_) { btn.hidden = true; hintEl.hidden = true; detach(); }
+    }
+
+    // En el teléfono, el primer evento de un toque (pointerdown) todavía NO da permiso de sonido; el permiso llega al soltar el dedo.
+    // Por eso la música de respaldo solo arranca cuando el contexto de audio queda realmente "running"; si no, se reintenta con el siguiente evento.
+    function trySynth() {
+      if (!ctx || started) return;
+      ctx.resume().then(() => { if (ctx.state === 'running' && !started) startSynth(); }).catch(() => {});
+    }
+
+    // ---- primer toque ----
+    function start(e) {
+      if (started || (e && e.target && e.target.closest && e.target.closest('#musicBtn'))) return;
+      if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} } // se crea dentro del toque (iOS lo exige)
+      if (bgm.error || bgm.networkState === 3) { trySynth(); return; }
+      bgm.volume = 0;
+      const p = bgm.play();
+      if (p && p.then) p.then(() => {
+        if (started) return; mode = 'file'; started = true; wanted = true; setUI(true); fadeFile(VOL, 2500); detach();
+        if (ctx && ctx.close) ctx.close().catch(() => {}); ctx = null;
+      }).catch(err => { if (err && err.name === 'NotAllowedError') return; trySynth(); });
+    }
+    const EVENTS = ['pointerdown', 'pointerup', 'touchend', 'mousedown', 'click', 'keydown'];
+    const detach = () => { EVENTS.forEach(ev => removeEventListener(ev, start, true)); hintEl.classList.remove('show'); };
+    EVENTS.forEach(ev => addEventListener(ev, start, true));
+
+    // ---- botón silenciar / activar ----
+    function apply() {
+      setUI(wanted);
+      if (mode === 'file') { if (wanted) { bgm.play().catch(() => {}); fadeFile(VOL, 800); } else fadeFile(0, 500, () => bgm.pause()); }
+      else if (mode === 'synth') { master.gain.cancelScheduledValues(ctx.currentTime); master.gain.linearRampToValueAtTime(wanted ? VOL * .8 : 0, ctx.currentTime + .6); }
+    }
+    btn.addEventListener('click', () => { if (!started) { start(); return; } wanted = !wanted; apply(); });
+
+    // ---- pausar si se sale de la página ----
+    document.addEventListener('visibilitychange', () => {
+      if (!started) return;
+      if (document.hidden) { if (mode === 'file') bgm.pause(); else ctx.suspend(); }
+      else if (wanted) { if (mode === 'file') bgm.play().catch(() => {}); else ctx.resume(); }
+    });
+
+    // aviso discreto hasta que se toque la pantalla
+    setTimeout(() => { if (!started) hintEl.classList.add('show'); }, 1800);
+    setTimeout(() => hintEl.classList.remove('show'), 9000);
+  })();
+
   onScroll();
 })();
