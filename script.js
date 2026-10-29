@@ -643,6 +643,19 @@
       if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} } // se crea dentro del toque (iOS lo exige)
       if (bgm.error || bgm.networkState === 3) { trySynth(); return; }
       bgm.volume = 0;
+      // CAMBIO: iniciar la canción en el segundo 25.
+      // Si los metadatos aún no están cargados, buscar el segundo 25
+      // en cuanto el navegador conozca la duración del audio.
+      const iniciarEn25 = () => {
+        if (Number.isFinite(bgm.duration) && bgm.duration > 25 && bgm.currentTime < 25) {
+          try { bgm.currentTime = 25; } catch (_) {}
+        }
+      };
+      if (bgm.readyState >= 1) {
+        iniciarEn25();
+      } else {
+        bgm.addEventListener('loadedmetadata', iniciarEn25, { once: true });
+      }
       const p = bgm.play();
       if (p && p.then) p.then(() => {
         if (started) return; mode = 'file'; started = true; wanted = true; setUI(true); fadeFile(VOL, 2500); detach();
