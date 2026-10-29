@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071a3a">
+  <meta name="description" content="Una sorpresa de cumpleaños hecha especialmente para Jimena del Pilar.">
+  <title>Felices 16, Jimena del Pilar 💙</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=prev2">
+  <script>document.documentElement.classList.add('js');</script>
+  <script src="script.js?v=prev2" defer></script>
+</head>
+<body class="locked">
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="inicio">
+      <div class="aurora" aria-hidden="true"></div>
+      <div class="hero-content">
+        <p class="eyebrow hero-in" style="--d:.1s">29 de octubre de 2026 · Un día especial</p>
+
+        <div class="hero-flower gerbera-host hero-in" id="heroFlower" aria-hidden="true" style="--d:.25s"></div>
+
+        <h1 aria-label="Felices 16, Jimena del Pilar">
+          <span class="line" data-split aria-hidden="true">Felices <em>16</em>,</span>
+          <span class="line" data-split aria-hidden="true">Jimena del Pilar <b class="heart">💙</b></span>
+        </h1>
+
+        <p class="subtitle hero-in" style="--d:1.5s">Una pequeña sorpresa hecha especialmente para ti.</p>
+
+        <button class="btn hero-in" id="startButton" style="--d:1.7s"><span>Abre tu sorpresa</span> <i aria-hidden="true">✨</i></button>
+        <p class="tiny hero-in" style="--d:2.1s">Hecha con cariño.</p>
+      </div>
+      <div class="scroll-hint" id="scrollHint" aria-hidden="true"><i></i></div>
+    </section>
+
+    <!-- ============ SORPRESA ============ -->
+    <div id="surprise" hidden>
+
+      <section class="sec intro" id="intro">
+        <span class="big-icon reveal" aria-hidden="true">💌</span>
+        <h2 class="reveal" style="--d:.1s">Hoy todo se pinta de azul</h2>
+        <p class="lead reveal" style="--d:.2s">Porque hoy cumples 16, y se me ocurrió hacerte algo diferente. Espero que este pequeño rincón te saque una sonrisa.</p>
+      </section>
+
+      <section class="sec glass garden" id="jardin">
+        <p class="eyebrow reveal">Un jardín solo para ti</p>
+        <h2 class="reveal" style="--d:.08s">Las gerberas tienen algo que decirte 🌸</h2>
+        <p class="lead reveal" style="--d:.16s">Toca cada flor para descubrir su mensaje.</p>
+
+        <div class="flowers" id="flowers">
+          <button class="flower reveal" style="--d:.1s" data-color="rosa" data-message="Que tus 16 estén llenos de momentos que quieras recordar. 💙" aria-label="Abrir mensaje de la flor rosa"><span class="gerbera-host"></span></button>
+          <button class="flower reveal" style="--d:.2s" data-color="amarilla" data-message="Que nunca te falten motivos para sonreír. ✨" aria-label="Abrir mensaje de la flor amarilla"><span class="gerbera-host"></span></button>
+          <button class="flower reveal" style="--d:.3s" data-color="naranja" data-message="Que siempre encuentres cosas bonitas en los días más simples. 🌷" aria-label="Abrir mensaje de la flor naranja"><span class="gerbera-host"></span></button>
+          <button class="flower reveal" style="--d:.4s" data-color="blanca" data-message="Y que hoy recibas muchísimas flores, especialmente gerberas. 🌸" aria-label="Abrir mensaje de la flor blanca"><span class="gerbera-host"></span></button>
+        </div>
+
+        <div class="dots" id="flowerDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div id="flowerMessage" class="msg" aria-live="polite">Elige una flor 🌼</div>
+      </section>
+
+      <section class="sec favorites">
+        <p class="eyebrow reveal">Algunas cosas que me contaste</p>
+        <h2 class="reveal" style="--d:.08s">El pequeño universo de Jimena del Pilar</h2>
+        <p class="lead reveal" style="--d:.16s">Toca las tarjetas para voltearlas.</p>
+        <div class="cards">
+          <button class="fcard reveal" style="--d:.05s" aria-pressed="false">
+            <span class="face front"><em aria-hidden="true">🌼</em><h3>Gerberas</h3></span>
+            <span class="face back"><i class="orn" aria-hidden="true">🌼</i><p>Las flores más lindas para la chica más linda</p><i class="heart-line" aria-hidden="true">🤍</i></span>
+          </button>
+          <button class="fcard reveal" style="--d:.15s" aria-pressed="false">
+            <span class="face front"><em aria-hidden="true">🥩</em><h3>Carnita asada</h3></span>
+            <span class="face back"><i class="orn" aria-hidden="true">🔥</i><p>Una buena comida siempre debe disfrutarse</p><i class="heart-line" aria-hidden="true">🤍</i></span>
+          </button>
+          <button class="fcard reveal" style="--d:.25s" aria-pressed="false">
+            <span class="face front"><em aria-hidden="true">💤</em><h3>Dormir</h3></span>
+            <span class="face back"><i class="orn" aria-hidden="true">🌙</i><p>El descanso es esencial para tu belleza</p><i class="heart-line" aria-hidden="true">🤍</i></span>
+          </button>
+          <button class="fcard reveal" style="--d:.35s" aria-pressed="false">
+            <span class="face front"><em aria-hidden="true">🌙</em><h3>Salir</h3></span>
+            <span class="face back"><i class="orn" aria-hidden="true">✨</i><p class="long">Lo más bonito de salir contigo es crear recuerdos que duren para siempre</p><i class="heart-line" aria-hidden="true">🤍</i></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="sec glass secret">
+        <h2 class="reveal">Una sorpresa escondida 🏈</h2>
+        <p class="lead reveal" style="--d:.1s">toca el balón.</p>
+
+        <div class="field reveal" id="field" style="--d:.2s">
+          <svg class="goal" viewBox="0 0 120 200" aria-hidden="true" focusable="false">
+            <path d="M60 200V112M18 112H102M18 112V8M102 112V8" fill="none" stroke="#ffe08a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <button class="ball" id="football" aria-label="Patear el balón de tocho">🏈</button>
+          <div class="grass" aria-hidden="true"></div>
+        </div>
+
+        <p id="footballMessage" class="msg hidden" aria-live="polite">Por cierto… aquel touchdown sí tenía dedicatoria. 🏈💙</p>
+      </section>
+
+      <section class="sec birthday">
+        <p class="eyebrow reveal">Es momento de celebrar</p>
+        <h2 class="reveal" style="--d:.08s">Pide un deseo, cumpleañera 🎂</h2>
+        <p class="lead reveal" style="--d:.16s"></p>
+
+        <div class="cake-wrap reveal" id="cake" style="--d:.2s" role="group" aria-label="Pastel de cumpleaños con las velas del 1 y del 6"></div>
+
+        <p id="candleCounter" class="counter" aria-live="polite">2 velas encendidas</p>
+        <button class="btn ghost" id="blowAll">Soplar 💨</button>
+        <p id="birthdayMessage" class="wish hidden" aria-live="polite">¡Feliz cumpleaños, Jimena del Pilar! 🎉💙<br>Que tengas unos 16 increíbles.</p>
+      </section>
+
+      <section class="sec letter">
+        <p class="eyebrow reveal">Y antes de irte…</p>
+        <h2 class="reveal" style="--d:.08s">Te dejé una cartita 💌</h2>
+        <p class="lead reveal" style="--d:.16s">Toca el sobre para abrirlo.</p>
+
+        <button id="envelope" class="env reveal" style="--d:.2s" aria-expanded="false" aria-controls="letterWrap" aria-label="Abrir carta">
+          <i class="flap"></i><i class="pocket"></i><i class="seal" aria-hidden="true">💙</i>
+        </button>
+
+        <div class="letter-wrap" id="letterWrap">
+          <div class="letter-inner">
+            <article class="paper" id="paper">
+              <h3>Para Jimena del Pilar 💙</h3>
+              <p data-tw>¡Felices 16! Espero que tengas un cumpleaños lleno de cosas bonitas, risas, flores y, si se puede, una buena carnita asada JAJA.</p>
+              <p data-tw>Quise hacerte esta página porque me pareció una forma diferente de desearte un día especial. Ojalá te guste tanto como a mí me gustó prepararla.</p>
+              <p data-tw>Disfruta muchísimo tu día. ✨</p>
+              <p class="signature" data-tw>Con cariño,<br><strong>Adrián 💙</strong></p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <p>Hecho especialmente para Jimena del Pilar · 29.10.2026 🌼</p>
+        <div class="foot-actions">
+          <button class="btn ghost" id="moreFireworks">Más fuegos artificiales 🎆</button>
+          <button class="btn ghost" id="toTop">Volver al inicio ↑</button>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Música: pon tu canción en esta misma carpeta con el nombre cancion.mp3 -->
+  <audio id="bgm" src="cancion.mp3" loop preload="auto"></audio>
+  <p class="music-hint" id="musicHint" aria-hidden="true">Toca la pantalla para escuchar música 🎵</p>
+  <button class="music-btn" id="musicBtn" type="button" aria-pressed="false" aria-label="Activar la música"><span aria-hidden="true">🎵</span></button>
+</body>
+</html>
