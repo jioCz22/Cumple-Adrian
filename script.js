@@ -14,6 +14,10 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (_) {} };
 
+  const surprise = $('#surprise');
+  const startBtn = $('#startButton');
+  const hint = $('#scrollHint');
+
   /* ---------------------------------------------------------
      1. GERBERAS EN SVG (se dibujan por código, sin imágenes)
      --------------------------------------------------------- */
@@ -274,88 +278,6 @@
   }
 
   /* ---------------------------------------------------------
-     5. RELOJ EXACTO + COMPUERTA DE ACCESO
-     --------------------------------------------------------- */
-  // Inicio del cumpleaños: 29 de octubre de 2026, 00:00 en Ciudad de México (UTC−6, sin horario de verano).
-  // Se escribe con su desfase, así es UN instante absoluto y se calcula igual en cualquier zona horaria.
-  const TARGET = Date.parse('2026-10-29T00:00:00-06:00');
-
-  // Reloj: se toma la hora del SERVIDOR (cabecera HTTP "Date"), no la del teléfono, para que cambiar
-  // la fecha del dispositivo no sirva para adelantar el desbloqueo. Si no hay servidor (archivo local
-  // o sin conexión) se usa la hora del dispositivo.
-  let clockBase = Date.now(), clockPerf = performance.now(), clockSynced = false, syncSettled = false;
-  const now = () => clockSynced ? clockBase + (performance.now() - clockPerf) : Date.now();
-
-  async function syncClock() {
-    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 4000);
-    try {
-      const t0 = performance.now();
-      const r = await fetch(location.pathname + '?_=' + Date.now(), { method: 'HEAD', cache: 'no-store', signal: ctl.signal });
-      const t1 = performance.now();
-      const server = Date.parse(r.headers.get('date'));
-      if (Number.isFinite(server)) {
-        const age = (parseInt(r.headers.get('age'), 10) || 0) * 1000; // por si el CDN entregó una copia guardada
-        clockBase = server + age + (t1 - t0) / 2; clockPerf = t1; clockSynced = true;
-      }
-    } catch (_) { /* sin servidor: se queda con el reloj del dispositivo */ }
-    finally { clearTimeout(to); syncSettled = true; render(); }
-  }
-
-  const surprise = $('#surprise');
-  const tpl = $('#surpriseTpl');
-  const startBtn = $('#startButton');
-  const hint = $('#scrollHint');
-  const sub = $('#subtitle'), chip = $('#lockChip');
-  const cd = { box: $('#countdown'), label: $('#cdLabel'), d: $('#cdD'), h: $('#cdH'), m: $('#cdM'), s: $('#cdS') };
-  const setText = (el, v) => { v = String(v); if (el.textContent !== v) el.textContent = v; };
-
-  try { // texto "Se abrirá el 29 de octubre, 12:00 a.m." en la hora local de quien lo abre
-    $('#lockText').textContent = 'Se abrirá el ' + new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }).format(TARGET);
-  } catch (_) {}
-
-  let isOpen = false, sawWaiting = false, renderTimer = 0;
-
-  function openGate(animate) {
-    isOpen = true;
-    document.documentElement.dataset.gate = 'open';
-    cd.box.classList.add('today'); cd.box.setAttribute('aria-live', 'polite');
-    cd.label.textContent = now() < TARGET + 864e5 ? '¡Feliz cumpleaños! 🎉' : 'Felices 16 💙';
-    sub.textContent = 'Una pequeña sorpresa hecha especialmente para ti.';
-    chip.hidden = true;
-    if (animate) { // llegó la hora con la página abierta
-      startBtn.style.setProperty('--d', '.5s');
-      sub.classList.remove('swap'); void sub.offsetWidth; sub.classList.add('swap');
-      buzz([30, 40, 30, 40, 90]); celebrate(2);
-    }
-    startBtn.hidden = false;
-  }
-
-  function render() {
-    clearTimeout(renderTimer);
-    if (isOpen) return;
-    const diff = TARGET - now();
-    if (diff <= 0) {
-      // nunca se abre con el reloj del dispositivo hasta haber intentado consultar la hora del servidor
-      if (!syncSettled) { renderTimer = setTimeout(render, 150); return; }
-      openGate(sawWaiting); return;
-    }
-    sawWaiting = true;
-    const t = Math.floor(diff / 1000);
-    setText(cd.d, Math.floor(t / 86400));
-    setText(cd.h, String(Math.floor(t % 86400 / 3600)).padStart(2, '0'));
-    setText(cd.m, String(Math.floor(t % 3600 / 60)).padStart(2, '0'));
-    setText(cd.s, String(t % 60).padStart(2, '0'));
-    // el siguiente repintado cae justo al cambiar el segundo (y exactamente al llegar a 0)
-    renderTimer = setTimeout(render, (diff % 1000) + 5);
-  }
-
-  render();
-  syncClock();
-  setInterval(syncClock, 60000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { syncClock(); render(); } });
-  addEventListener('focus', () => { syncClock(); render(); });
-
-  /* ---------------------------------------------------------
      6. ABRIR LA SORPRESA + REVELADO AL HACER SCROLL
      --------------------------------------------------------- */
   const io = new IntersectionObserver(entries => {
@@ -368,11 +290,8 @@
 
   let mounted = false;
   startBtn.addEventListener('click', () => {
-    if (!isOpen || now() < TARGET) return; // doble verificación: nunca se monta antes de la hora
     if (mounted) { $('#intro').scrollIntoView({ behavior: 'smooth' }); return; }
     mounted = true;
-    surprise.appendChild(document.importNode(tpl.content, true)); // aquí nace el contenido
-    tpl.remove();
     mountSurprise();
     document.body.classList.remove('locked');
     surprise.hidden = false;
