@@ -360,3 +360,18 @@ h1 em .ch {
 [data-gate="waiting"] .tiny { margin-top: 16px; }
 .countdown.today { margin-bottom: 30px; }
 @media (min-width: 720px) { .fcard { height: 230px; } .back p { font-size: 1.12rem; } .back p.long { font-size: 1rem; } }
+
+
+/* ---------- Música ---------- */
+.music-btn { position: fixed; z-index: 70; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--glass-line);
+  display: grid; place-items: center; font-size: 1.35rem; line-height: 1; color: #fff; background: rgba(10, 37, 89, .62); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 28px rgba(0, 10, 50, .45), inset 0 1px 0 rgba(255, 255, 255, .2); transition: transform .3s var(--spring), background .3s; }
+.music-btn:active { transform: scale(.9); }
+.music-btn.on { background: linear-gradient(135deg, #4aa3ff, #2563d4); }
+.music-btn.on::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(124, 192, 255, .55); animation: musicPulse 2.2s ease-out infinite; }
+.music-btn.off::after { content: ''; position: absolute; width: 26px; height: 2.5px; border-radius: 2px; background: #fff; transform: rotate(-45deg); box-shadow: 0 0 0 1.5px rgba(10, 37, 89, .8); }
+.music-hint { position: fixed; z-index: 70; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); margin: 0; padding: 11px 20px; width: max-content; max-width: calc(100vw - 100px); text-align: center; font-size: .86rem; font-weight: 600; color: var(--ice);
+  background: rgba(10, 37, 89, .7); border: 1px solid var(--glass-line); border-radius: 100px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: opacity .6s var(--ease), transform .6s var(--ease); }
+.music-hint.show { opacity: 1; transform: translate(-50%, 0); }
+@keyframes musicPulse { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.35); opacity: 0; } }
