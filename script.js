@@ -1,5 +1,5 @@
 /* =========================================================
-   Felices 16, Jimena Pilar — comportamiento
+   Felices 16, Jimena del Pilar — comportamiento
    Todo el movimiento usa transform/opacity y requestAnimationFrame;
    los canvas se pausan solos cuando no hay nada que animar.
    ========================================================= */
@@ -119,7 +119,6 @@
   }
 
   heroHost.innerHTML = gerberaHead(PALETTES.hero, 3);
-  $$('.flower').forEach((f, i) => { $('.gerbera-host', f).innerHTML = gerberaFull(PALETTES[f.dataset.color] || PALETTES.rosa, i + 5); });
 
   /* ---------------------------------------------------------
      2. TÍTULO LETRA POR LETRA
@@ -275,38 +274,90 @@
   }
 
   /* ---------------------------------------------------------
-     5. CUENTA REGRESIVA (29 de octubre de 2026, hora local)
+     5. RELOJ EXACTO + COMPUERTA DE ACCESO
      --------------------------------------------------------- */
-  const target = new Date(2026, 9, 29, 0, 0, 0);
-  const dayMs = 864e5;
-  const cd = { box: $('#countdown'), label: $('#cdLabel'), d: $('#cdD'), h: $('#cdH'), m: $('#cdM'), s: $('#cdS') };
-  const isBefore = () => Date.now() < target.getTime();
+  // Inicio del cumpleaños: 29 de octubre de 2026, 00:00 en Ciudad de México (UTC−6, sin horario de verano).
+  // Se escribe con su desfase, así es UN instante absoluto y se calcula igual en cualquier zona horaria.
+  const TARGET = Date.parse('2026-10-29T00:00:00-06:00');
 
-  function tick() {
-    const diff = target - Date.now();
-    if (diff > 0) {
-      const t = Math.floor(diff / 1000);
-      cd.d.textContent = Math.floor(t / 86400);
-      cd.h.textContent = String(Math.floor(t % 86400 / 3600)).padStart(2, '0');
-      cd.m.textContent = String(Math.floor(t % 3600 / 60)).padStart(2, '0');
-      cd.s.textContent = String(t % 60).padStart(2, '0');
-    } else {
-      cd.box.classList.add('today');
-      cd.label.textContent = Date.now() < target.getTime() + dayMs ? '¡Hoy es tu día! 🎉' : 'Felices 16 💙';
-    }
+  // Reloj: se toma la hora del SERVIDOR (cabecera HTTP "Date"), no la del teléfono, para que cambiar
+  // la fecha del dispositivo no sirva para adelantar el desbloqueo. Si no hay servidor (archivo local
+  // o sin conexión) se usa la hora del dispositivo.
+  let clockBase = Date.now(), clockPerf = performance.now(), clockSynced = false, syncSettled = false;
+  const now = () => clockSynced ? clockBase + (performance.now() - clockPerf) : Date.now();
+
+  async function syncClock() {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 4000);
+    try {
+      const t0 = performance.now();
+      const r = await fetch(location.pathname + '?_=' + Date.now(), { method: 'HEAD', cache: 'no-store', signal: ctl.signal });
+      const t1 = performance.now();
+      const server = Date.parse(r.headers.get('date'));
+      if (Number.isFinite(server)) {
+        const age = (parseInt(r.headers.get('age'), 10) || 0) * 1000; // por si el CDN entregó una copia guardada
+        clockBase = server + age + (t1 - t0) / 2; clockPerf = t1; clockSynced = true;
+      }
+    } catch (_) { /* sin servidor: se queda con el reloj del dispositivo */ }
+    finally { clearTimeout(to); syncSettled = true; render(); }
   }
-  tick(); setInterval(tick, 1000);
 
-  // Si todavía no es el día, los textos dicen "pronto" en lugar de "hoy"
-  if (isBefore()) $$('[data-before]').forEach(el => { el.textContent = el.dataset.before; });
+  const surprise = $('#surprise');
+  const tpl = $('#surpriseTpl');
+  const startBtn = $('#startButton');
+  const hint = $('#scrollHint');
+  const sub = $('#subtitle'), chip = $('#lockChip');
+  const cd = { box: $('#countdown'), label: $('#cdLabel'), d: $('#cdD'), h: $('#cdH'), m: $('#cdM'), s: $('#cdS') };
+  const setText = (el, v) => { v = String(v); if (el.textContent !== v) el.textContent = v; };
+
+  try { // texto "Se abrirá el 29 de octubre, 12:00 a.m." en la hora local de quien lo abre
+    $('#lockText').textContent = 'Se abrirá el ' + new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }).format(TARGET);
+  } catch (_) {}
+
+  let isOpen = false, sawWaiting = false, renderTimer = 0;
+
+  function openGate(animate) {
+    isOpen = true;
+    document.documentElement.dataset.gate = 'open';
+    cd.box.classList.add('today'); cd.box.setAttribute('aria-live', 'polite');
+    cd.label.textContent = now() < TARGET + 864e5 ? '¡Feliz cumpleaños! 🎉' : 'Felices 16 💙';
+    sub.textContent = 'Una pequeña sorpresa hecha especialmente para ti.';
+    chip.hidden = true;
+    if (animate) { // llegó la hora con la página abierta
+      startBtn.style.setProperty('--d', '.5s');
+      sub.classList.remove('swap'); void sub.offsetWidth; sub.classList.add('swap');
+      buzz([30, 40, 30, 40, 90]); celebrate(2);
+    }
+    startBtn.hidden = false;
+  }
+
+  function render() {
+    clearTimeout(renderTimer);
+    if (isOpen) return;
+    const diff = TARGET - now();
+    if (diff <= 0) {
+      // nunca se abre con el reloj del dispositivo hasta haber intentado consultar la hora del servidor
+      if (!syncSettled) { renderTimer = setTimeout(render, 150); return; }
+      openGate(sawWaiting); return;
+    }
+    sawWaiting = true;
+    const t = Math.floor(diff / 1000);
+    setText(cd.d, Math.floor(t / 86400));
+    setText(cd.h, String(Math.floor(t % 86400 / 3600)).padStart(2, '0'));
+    setText(cd.m, String(Math.floor(t % 3600 / 60)).padStart(2, '0'));
+    setText(cd.s, String(t % 60).padStart(2, '0'));
+    // el siguiente repintado cae justo al cambiar el segundo (y exactamente al llegar a 0)
+    renderTimer = setTimeout(render, (diff % 1000) + 5);
+  }
+
+  render();
+  syncClock();
+  setInterval(syncClock, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { syncClock(); render(); } });
+  addEventListener('focus', () => { syncClock(); render(); });
 
   /* ---------------------------------------------------------
      6. ABRIR LA SORPRESA + REVELADO AL HACER SCROLL
      --------------------------------------------------------- */
-  const surprise = $('#surprise');
-  const startBtn = $('#startButton');
-  const hint = $('#scrollHint');
-
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (!e.isIntersecting) return;
@@ -315,8 +366,14 @@
     });
   }, { threshold: .15, rootMargin: '0px 0px -6% 0px' });
 
+  let mounted = false;
   startBtn.addEventListener('click', () => {
-    if (!surprise.hidden) { $('#intro').scrollIntoView({ behavior: 'smooth' }); return; }
+    if (!isOpen || now() < TARGET) return; // doble verificación: nunca se monta antes de la hora
+    if (mounted) { $('#intro').scrollIntoView({ behavior: 'smooth' }); return; }
+    mounted = true;
+    surprise.appendChild(document.importNode(tpl.content, true)); // aquí nace el contenido
+    tpl.remove();
+    mountSurprise();
     document.body.classList.remove('locked');
     surprise.hidden = false;
     $$('.reveal', surprise).forEach(el => io.observe(el));
@@ -339,6 +396,10 @@
     });
   };
   addEventListener('scroll', onScroll, { passive: true });
+
+  /* Todo lo interactivo de la sorpresa se activa SOLO cuando el contenido ya fue creado. */
+  function mountSurprise() {
+  $$('.flower').forEach((f, i) => { $('.gerbera-host', f).innerHTML = gerberaFull(PALETTES[f.dataset.color] || PALETTES.rosa, i + 5); });
 
   /* ---------------------------------------------------------
      7. JARDÍN
@@ -370,6 +431,7 @@
      8. TARJETAS QUE SE VOLTEAN
      --------------------------------------------------------- */
   $$('.fcard').forEach(c => c.addEventListener('click', () => {
+    c.style.setProperty('--d', '0s'); // el giro no debe heredar el retraso escalonado de la aparición
     const on = c.classList.toggle('flipped');
     c.setAttribute('aria-pressed', String(on)); buzz(10);
   }));
@@ -595,6 +657,8 @@
      --------------------------------------------------------- */
   $('#moreFireworks').addEventListener('click', () => { celebrate(2); buzz(30); });
   $('#toTop').addEventListener('click', () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
+
+  } // fin mountSurprise
 
   onScroll();
 })();
