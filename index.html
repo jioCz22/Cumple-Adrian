@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=prev1">
+  <link rel="stylesheet" href="style.css?v=prev2">
   <script>document.documentElement.classList.add('js');</script>
-  <script src="script.js?v=prev1" defer></script>
+  <script src="script.js?v=prev2" defer></script>
 </head>
 <body class="locked">
   <canvas id="bg" aria-hidden="true"></canvas>
@@ -147,5 +147,10 @@
       </footer>
     </div>
   </main>
+
+  <!-- Música: pon tu canción en esta misma carpeta con el nombre cancion.mp3 -->
+  <audio id="bgm" src="cancion.mp3" loop preload="auto"></audio>
+  <p class="music-hint" id="musicHint" aria-hidden="true">Toca la pantalla para escuchar música 🎵</p>
+  <button class="music-btn" id="musicBtn" type="button" aria-pressed="false" aria-label="Activar la música"><span aria-hidden="true">🎵</span></button>
 </body>
 </html>
