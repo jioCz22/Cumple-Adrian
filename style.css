@@ -43,7 +43,7 @@ body::before { /* fondo fijo que no se re-pinta al hacer scroll */
     radial-gradient(120% 60% at 50% 0%, #1b4fa6 0%, transparent 60%),
     linear-gradient(180deg, #050f27 0%, #0a2559 40%, #0d3a85 75%, #0a2559 100%);
 }
-body.locked { overflow: hidden; height: 100svh; }
+body.locked { overflow-x: hidden; } /* antes bloqueaba el scroll y en pantallas bajas tapaba la cuenta regresiva */
 
 button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 button:focus-visible { outline: 3px solid var(--glow); outline-offset: 4px; }
@@ -109,11 +109,11 @@ canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: n
   bottom: -80vmax; right: -60vmax; animation-duration: 22s; animation-direction: alternate-reverse;
   background: radial-gradient(closest-side, rgba(255, 184, 220, .22), transparent);
 }
-.hero-content { position: relative; z-index: 1; max-width: 640px; width: 100%; }
+.hero-content { position: relative; z-index: 1; max-width: 760px; width: 100%; }
 
 .hero-in { opacity: 0; transform: translateY(18px); animation: heroIn 1s var(--ease) var(--d, 0s) forwards; }
 
-.hero-flower { width: min(60vw, 250px); margin: 4px auto 6px; position: relative; }
+.hero-flower { width: min(60vw, 250px, 27vh); margin: 4px auto 6px; position: relative; }
 .hero-flower::before { /* halo */
   content: ''; position: absolute; inset: -22%; z-index: -1; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(159, 211, 255, .55), transparent 70%);
@@ -121,7 +121,7 @@ canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: n
 }
 .hero-flower > svg { filter: drop-shadow(0 16px 24px rgba(0, 20, 70, .55)); animation: float 5s ease-in-out infinite; }
 
-h1 { font-size: clamp(2.6rem, 11.5vw, 5.4rem); margin: 8px 0 14px; text-shadow: 0 6px 40px rgba(60, 140, 255, .55); }
+h1 { font-size: clamp(1.9rem, min(9.6vw, 8.5vh), 5.4rem); margin: 8px 0 14px; text-shadow: 0 6px 40px rgba(60, 140, 255, .55); }
 h1 .line { display: block; }
 h1 .w { display: inline-block; white-space: nowrap; }
 h1 .ch { display: inline-block; opacity: 0; transform: translateY(60%) rotate(8deg) scale(.9); filter: blur(8px);
@@ -212,10 +212,13 @@ h1 em .ch {
 
 /* ---------- Tarjetas que se voltean ---------- */
 .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 30px; perspective: 1000px; }
-.fcard { position: relative; border: 0; background: none; padding: 0; height: 190px; transform-style: preserve-3d; transition: transform .8s var(--ease); }
+.fcard { position: relative; border: 0; background: none; padding: 0; height: 206px; transform-style: preserve-3d; transition: transform .8s var(--ease); }
 .fcard.flipped { transform: rotateY(180deg); }
+/* la regla de aparición (.reveal.in) tiene más peso y anulaba el giro: se reafirma aquí */
+.js .fcard.reveal { transition: opacity .9s var(--ease) var(--d, 0s), filter .9s var(--ease) var(--d, 0s), transform .8s var(--ease) var(--d, 0s); }
+.js .fcard.reveal.in.flipped { transform: rotateY(180deg); }
 .face {
-  position: absolute; inset: 0; display: grid; place-content: center; gap: 4px; padding: 16px 12px; border-radius: 26px;
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 4px; padding: 16px 14px; border-radius: 26px;
   -webkit-backface-visibility: hidden; backface-visibility: hidden;
   border: 1px solid var(--glass-line);
 }
@@ -223,8 +226,12 @@ h1 em .ch {
 .front em { font-style: normal; font-size: 2.8rem; animation: float 4s ease-in-out infinite; }
 .fcard:nth-child(2) .front em { animation-delay: -1s; } .fcard:nth-child(3) .front em { animation-delay: -2s; } .fcard:nth-child(4) .front em { animation-delay: -3s; }
 .front h3 { font-size: 1.2rem; }
-.back { transform: rotateY(180deg); background: linear-gradient(160deg, #3b8cf0, #1f55bd); }
-.back p { margin: 0; font-size: .95rem; line-height: 1.5; font-weight: 500; }
+.back { transform: rotateY(180deg); background: linear-gradient(160deg, #3f93f5, #1f55bd 70%, #173f8c); gap: 8px; box-shadow: 0 16px 40px rgba(0, 10, 50, .35), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.back::before { content: ''; position: absolute; inset: 7px; border: 1px solid rgba(255, 255, 255, .22); border-radius: 20px; pointer-events: none; }
+.back .orn { font-style: normal; font-size: 1.15rem; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0, 20, 80, .4)); }
+.back .heart-line { font-style: normal; font-size: .8rem; line-height: 1; opacity: .85; }
+.back p { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 600; font-size: clamp(.95rem, 4.2vw, 1.1rem); line-height: 1.38; text-wrap: balance; text-shadow: 0 2px 10px rgba(0, 20, 80, .45); }
+.back p.long { font-size: clamp(.84rem, 3.7vw, 1rem); line-height: 1.34; }
 
 /* ---------- Tocho ---------- */
 .field { position: relative; height: 210px; max-width: 440px; margin: 26px auto 0; --dx: 240px; }
@@ -340,3 +347,16 @@ h1 em .ch {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
 }
+
+
+/* ---------- Pantalla de espera (antes del cumpleaños) ---------- */
+[data-gate="waiting"] .subtitle { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 1.28rem; line-height: 1.45; color: var(--ice); text-shadow: 0 2px 24px rgba(80, 160, 255, .45); max-width: 440px; }
+[data-gate="waiting"] .hero-flower > svg { filter: drop-shadow(0 16px 24px rgba(0, 20, 70, .55)) saturate(.9); }
+.lock-chip { display: inline-flex; align-items: center; gap: 10px; margin: 0 auto; padding: 11px 20px; border-radius: 100px; font-size: .86rem; font-weight: 600; color: var(--ice);
+  background: var(--glass); border: 1px solid var(--glass-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.lock-chip i { font-style: normal; animation: float 3s ease-in-out infinite; }
+.lock-chip[hidden] { display: none !important; }
+[data-gate="waiting"] .countdown .cd-grid b { text-shadow: 0 0 22px rgba(124, 192, 255, .55); }
+[data-gate="waiting"] .tiny { margin-top: 16px; }
+.countdown.today { margin-bottom: 30px; }
+@media (min-width: 720px) { .fcard { height: 230px; } .back p { font-size: 1.12rem; } .back p.long { font-size: 1rem; } }
